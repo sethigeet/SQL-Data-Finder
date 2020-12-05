@@ -1,0 +1,14 @@
+{% extends "layout.html" %} {% block content %}
+<div>
+    <pre>
+        <code id="p"></code>
+    </pre>
+    <button onClick="x({{table_structures}})">Click ME</button>
+</div>
+<script>
+    function x(json) {
+        var p = document.getElementById("p");
+        p.innerText = JSON.stringify(json, null, 2);
+    }
+</script>
+{% endblock content %}
