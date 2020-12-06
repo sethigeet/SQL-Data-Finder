@@ -4,10 +4,10 @@ from gui import connection
 
 from .utils import get_table_names, get_table_structures
 
-posts = Blueprint(name='posts', import_name=__name__)
+db_structure = Blueprint(name='db_structure', import_name=__name__)
 
 
-@posts.route('/db_structure_tree')
+@db_structure.route('/db_structure_tree')
 def db_structure_tree():
     tables = get_table_names(connection)
     table_structures = get_table_structures(tables, connection)

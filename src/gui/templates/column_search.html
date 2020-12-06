@@ -1,0 +1,40 @@
+{% extends "layout.html" %} {% block content %}
+<div>
+    <h1>Column Search Page!</h1>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.search_term.label(class="form-control-label") }} {% if
+            form.search_term.errors %} {{ form.search_term() }}
+            <div>
+                {% for error in form.search_term.errors %}
+                <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+
+            {% else %} {{ form.search_term() }} {% endif %}
+        </div>
+        <div>{{ form.submit() }}</div>
+    </form>
+    {% if table_headers|length > 0 and table_data|length > 0 %}
+    <div style="margin-top: 30px">
+        <table>
+            <tr>
+                {% for header_cell in table_headers %}
+                <th>{{ header_cell }}</th>
+                {% endfor %}
+            </tr>
+            {% for row_data in table_data %}
+            <tr>
+                {% for cell in row_data %}
+                <td>{{ cell }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% else %}
+    <span>Start searching...</span>
+    {% endif %}
+</div>
+{% endblock content %}

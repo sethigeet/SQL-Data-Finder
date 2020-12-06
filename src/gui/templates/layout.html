@@ -19,6 +19,14 @@
         {% endif %}
     </head>
     <body>
+        <div>
+            <a href="{{ url_for('main.home') }}">Home</a>
+            <a href="{{ url_for('main.about') }}">About</a>
+            <a href="{{ url_for('search.column_search') }}">Search</a>
+            <a href="{{ url_for('db_structure.db_structure_tree') }}"
+                >DB Structure</a
+            >
+        </div>
         {% block content %}{% endblock %}
     </body>
 </html>

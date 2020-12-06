@@ -1,7 +1,7 @@
-from testing.helpers import get_table_names
 import sqlalchemy as db
 
 from helpers import (
+    get_table_names,
     find_correct_column_name,
     get_joined_tables,
     get_table_structures,
