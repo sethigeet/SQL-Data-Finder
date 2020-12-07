@@ -249,7 +249,7 @@ def get_joined_tables(common_column_name: str, req_tables: list, metadata, engin
 
     if where:
         query = query.where(
-            req_tables[0].c[where["column_name"]] == where["value"]
+            req_tables[0].c[where["column_name"]].like(f"%{where['value']}%")
         )
 
     # Execute the query and fetch the results
@@ -307,7 +307,7 @@ def get_where_condition_from_string(where_term: str, possible_columns: list) -> 
 
     if contains_is:
         index_of_seperator = where_words.index("is")
-        column_name = " ".join(where_words[:index_of_seperator - 1])
+        column_name = " ".join(where_words[:index_of_seperator])
         column_name = find_correct_column_name(
             column_name, possible_columns
         )[0]
@@ -318,10 +318,9 @@ def get_where_condition_from_string(where_term: str, possible_columns: list) -> 
         column_name = find_correct_column_name(
             column_name, possible_columns
         )[0]
-        value = " ".join(where_words[1:])
+        value = where_words[1]
         where = {"column_name": column_name, "value": value}
     else:
         error = "Could not parse where condition!"
-    print()
 
     return {"where_condition": where, "error": error}
