@@ -174,7 +174,7 @@ def get_tables_from_column_name(column_name: str, table_structures: dict) -> lis
     return list(set(tables))
 
 
-def get_joined_tables(common_column_name: str, req_tables: list, metadata, engine, connection, isouter=False) -> list:
+def get_joined_tables(common_column_name: str, req_tables: list, metadata, engine, connection, isouter=False, where={}) -> list:
     """Returns a list of all the results obtained by executing the query to join all the req_tables on the commun_column_name
 
     Parameters
@@ -193,6 +193,12 @@ def get_joined_tables(common_column_name: str, req_tables: list, metadata, engin
 
     connection:
         A connection to the database created using the SQLAlchemy library
+
+    isouter:
+        A boolean value stating whether the join is an inner or outer join
+
+    where:
+        A dictionary which contains "column_name": Name of the column and "value": Value of the column 
 
     Returns
     -------
@@ -224,6 +230,14 @@ def get_joined_tables(common_column_name: str, req_tables: list, metadata, engin
             isouter=isouter
         )
     query = select(req_tables, from_obj=query)
+
+    if where:
+        print(where)
+        print(where["column_name"])
+        print(where["value"])
+        query = query.where(
+            req_tables[0].c[where["column_name"]] == where["value"]
+        )
 
     # Execute the query and fetch the results
     result_proxy = connection.execute(query)

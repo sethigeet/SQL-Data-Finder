@@ -38,6 +38,7 @@ results = get_joined_tables(inferred_col_name,
                             tables_containing_inferred_col,
                             metadata,
                             engine,
-                            connection)
+                            connection,
+                            where={"column_name": "order_id", "value": "1"})
 for r in results:
     print(r)

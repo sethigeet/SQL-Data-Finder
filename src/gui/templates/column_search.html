@@ -4,8 +4,8 @@
     <form action="" method="post">
         {{ form.hidden_tag() }}
         <div class="form-group">
-            {{ form.search_term.label(class="form-control-label") }} {% if
-            form.search_term.errors %} {{ form.search_term() }}
+            {{ form.search_term.label() }} {% if form.search_term.errors %} {{
+            form.search_term() }}
             <div>
                 {% for error in form.search_term.errors %}
                 <span>{{ error }}</span>
@@ -14,26 +14,43 @@
 
             {% else %} {{ form.search_term() }} {% endif %}
         </div>
+        <div class="form-group">
+            {{ form.where_term.label() }} {% if form.where_term.errors %} {{
+            form.where_term() }}
+            <div>
+                {% for error in form.where_term.errors %}
+                <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+
+            {% else %} {{ form.where_term() }} {% endif %}
+        </div>
         <div>{{ form.submit() }}</div>
     </form>
     {% if table_headers|length > 0 and table_data|length > 0 %}
-    <div style="margin-top: 30px">
-        <table>
-            <tr>
-                {% for header_cell in table_headers %}
-                <th>{{ header_cell }}</th>
-                {% endfor %}
-            </tr>
-            {% for row_data in table_data %}
-            <tr>
-                {% for cell in row_data %}
-                <td>{{ cell }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </table>
+    <div>
+        <span>inferred_column_name: {{ inferred_column_name }}</span>
     </div>
-    {% else %}
+    <div style="margin-top: 30px">
+        <div>
+            <table>
+                <tr>
+                    {% for header_cell in table_headers %}
+                    <th>{{ header_cell }}</th>
+                    {% endfor %}
+                </tr>
+                {% for row_data in table_data %}
+                <tr>
+                    {% for cell in row_data %}
+                    <td>{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% if search_error %} search_error: {{ search_error }} {% endif %}
+    </div>
+    {% elif search_error %} search_error: {{ search_error }} {% else %}
     <span>Start searching...</span>
     {% endif %}
 </div>

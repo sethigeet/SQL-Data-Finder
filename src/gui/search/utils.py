@@ -174,7 +174,7 @@ def get_tables_from_column_name(column_name: str, table_structures: dict) -> lis
     return list(set(tables))
 
 
-def get_joined_tables(common_column_name: str, req_tables: list, metadata, engine, connection, isouter=False) -> dict:
+def get_joined_tables(common_column_name: str, req_tables: list, metadata, engine, connection, isouter=False, where={}) -> dict:
     """Returns a dict containing a list of the selected column names and a list of all the results obtained by executing the query to join all the req_tables on the commun_column_name
 
     Parameters
@@ -193,6 +193,12 @@ def get_joined_tables(common_column_name: str, req_tables: list, metadata, engin
 
     connection:
         A connection to the database created using the SQLAlchemy library
+
+    isouter:
+        A boolean value stating whether the join is an inner or outer join
+
+    where:
+        A dictionary which contains "column_name": Name of the column and "value": Value of the column 
 
     Returns
     -------
@@ -241,6 +247,11 @@ def get_joined_tables(common_column_name: str, req_tables: list, metadata, engin
             )
     query = select(req_tables, from_obj=query)
 
+    if where:
+        query = query.where(
+            req_tables[0].c[where["column_name"]] == where["value"]
+        )
+
     # Execute the query and fetch the results
     result_proxy = connection.execute(query)
     results = result_proxy.fetchall()
@@ -249,3 +260,68 @@ def get_joined_tables(common_column_name: str, req_tables: list, metadata, engin
 
     final_results = {"column_names": selected_columns, "column_data": results}
     return final_results
+
+
+def get_where_condition_from_string(where_term: str, possible_columns: list) -> dict:
+    """Returns a dict containing the where condition and an error if any by parsing the where_term for "is" or "="
+
+    Parameters
+    ----------
+    where_term:
+        A string of the condition that has to be parsed
+
+    possible_columns:
+        A list of all possible column names
+
+    Returns
+    -------
+    dict:
+        A dict of all the where_condition and an error if any
+
+    Example
+    -------
+    >>> get_where_condition_from_string("customer_id" is 7)
+    {
+        "where_condition": {"column_name": "customer_id", "value": 7},
+        "error": ""
+    }
+
+    """
+
+    where = {}
+    error = ""
+    where_words = []
+    contains_equals = False
+    contains_is = False
+
+    if where_term.count("=") > 0:
+        where_words = where_term.split("=")
+        contains_equals = True
+    elif where_term.count(" is ") > 0:
+        where_words = where_term.split(" ")
+        contains_is = True
+
+    for i, word in enumerate(where_words):
+        word = word.strip()
+        where_words[i] = word
+
+    if contains_is:
+        index_of_seperator = where_words.index("is")
+        column_name = " ".join(where_words[:index_of_seperator - 1])
+        column_name = find_correct_column_name(
+            column_name, possible_columns
+        )[0]
+        value = " ".join(where_words[index_of_seperator + 1:])
+        where = {"column_name": column_name, "value": value}
+    elif contains_equals:
+        column_name = where_words[0]
+        column_name = find_correct_column_name(
+            column_name, possible_columns
+        )[0]
+        value = " ".join(where_words[1:])
+        where = {"column_name": column_name, "value": value}
+    else:
+        error = "Could not parse where condition!"
+    print()
+
+    return {"where_condition": where, "error": error}
