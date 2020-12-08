@@ -1,133 +1,113 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8" />
-        <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1, shrink-to-fit=no"
-        />
+{% extends "layout.html" %} {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='test1.css') }}" />
+<div>
+    <div id="center-container">
+        <div id="infovis"></div>
+    </div>
 
-        <link
-            rel="stylesheet"
-            type="text/css"
-            href="{{ url_for('static', filename='main.css') }}"
-        />
-        <link
-            rel="stylesheet"
-            type="text/css"
-            href="{{ url_for('static', filename='test1.css') }}"
-        />
-        {% if title %}
-        <title>SQL Data Finder - {{ title }}</title>
-        {% else %}
-        <title>SQL Data Finder</title>
-        {% endif %}
-    </head>
-    <body onload="init({{ db_structure }});">
-        <div>
-    <div id="container">
-        <div id="center-container">
-            <div id="infovis"></div>
-        </div>
+    <div id="right-container">
+        <h4>Tree Orientation</h4>
+        <table>
+            <tr>
+                <td>
+                    <label for="r-left">Left </label>
+                </td>
+                <td>
+                    <input
+                        type="radio"
+                        id="r-left"
+                        name="orientation"
+                        checked="checked"
+                        value="left"
+                    />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="r-top">Top </label>
+                </td>
+                <td>
+                    <input
+                        type="radio"
+                        id="r-top"
+                        name="orientation"
+                        value="top"
+                    />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="r-bottom">Bottom </label>
+                </td>
+                <td>
+                    <input
+                        type="radio"
+                        id="r-bottom"
+                        name="orientation"
+                        value="bottom"
+                    />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="r-right">Right </label>
+                </td>
+                <td>
+                    <input
+                        type="radio"
+                        id="r-right"
+                        name="orientation"
+                        value="right"
+                    />
+                </td>
+            </tr>
+        </table>
 
-        <div id="right-container">
-            <h4>Tree Orientation</h4>
-            <table>
-                <tr>
-                    <td>
-                        <label for="r-left">Left </label>
-                    </td>
-                    <td>
-                        <input
-                            type="radio"
-                            id="r-left"
-                            name="orientation"
-                            checked="checked"
-                            value="left"
-                        />
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label for="r-top">Top </label>
-                    </td>
-                    <td>
-                        <input
-                            type="radio"
-                            id="r-top"
-                            name="orientation"
-                            value="top"
-                        />
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label for="r-bottom">Bottom </label>
-                    </td>
-                    <td>
-                        <input
-                            type="radio"
-                            id="r-bottom"
-                            name="orientation"
-                            value="bottom"
-                        />
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label for="r-right">Right </label>
-                    </td>
-                    <td>
-                        <input
-                            type="radio"
-                            id="r-right"
-                            name="orientation"
-                            value="right"
-                        />
-                    </td>
-                </tr>
-            </table>
+        <h4>Selection Mode</h4>
+        <table>
+            <tr>
+                <td>
+                    <label for="s-normal">Normal </label>
+                </td>
+                <td>
+                    <input
+                        type="radio"
+                        id="s-normal"
+                        name="selection"
+                        checked="checked"
+                        value="normal"
+                    />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="s-root">Set as Root </label>
+                </td>
+                <td>
+                    <input
+                        type="radio"
+                        id="s-root"
+                        name="selection"
+                        value="root"
+                    />
+                </td>
+            </tr>
+        </table>
+    </div>
 
-            <h4>Selection Mode</h4>
-            <table>
-                <tr>
-                    <td>
-                        <label for="s-normal">Normal </label>
-                    </td>
-                    <td>
-                        <input
-                            type="radio"
-                            id="s-normal"
-                            name="selection"
-                            checked="checked"
-                            value="normal"
-                        />
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label for="s-root">Set as Root </label>
-                    </td>
-                    <td>
-                        <input
-                            type="radio"
-                            id="s-root"
-                            name="selection"
-                            value="root"
-                        />
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <div id="log"></div>
-        <script src="{{ url_for('static', filename='jit-yc.js') }}"></script>
-        <script src="{{ url_for('static', filename='test.js') }}"></script>
-        <script>
-            function x(json) {
-                var p = document.getElementById("p");
-                p.innerText = JSON.stringify(json, null, 2);
-            }
-        </script>
-    </body>
-</html>
+    <div id="log"></div>
+    <script
+        type="text/javascript"
+        src="{{ url_for('static', filename='jit-yc.js') }}"
+    ></script>
+    <script
+        type="text/javascript"
+        src="{{ url_for('static', filename='test.js') }}"
+    ></script>
+    <script type="text/javascript">
+        window.addEventListener("DOMContentLoaded", function () {
+            init({{ db_structure|safe }});
+        });
+    </script>
+</div>
+{% endblock content %}

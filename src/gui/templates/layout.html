@@ -10,7 +10,7 @@
         <link
             rel="stylesheet"
             type="text/css"
-            href="{{ url_for('static', filename='main.css') }}"
+            href="{{ url_for('static', filename='base.css') }}"
         />
         {% if title %}
         <title>SQL Data Finder - {{ title }}</title>
@@ -19,14 +19,33 @@
         {% endif %}
     </head>
     <body>
-        <div>
-            <a href="{{ url_for('main.home') }}">Home</a>
-            <a href="{{ url_for('main.about') }}">About</a>
-            <a href="{{ url_for('search.column_search') }}">Search</a>
-            <a href="{{ url_for('db_structure.db_structure_tree') }}"
-                >DB Structure</a
-            >
-        </div>
+        <header>
+            <nav>
+                <h1>SQL Data Finder</h1>
+                <ul>
+                    <li
+                        class="bubble active-{{ '1' if active == 'home' else '' }}"
+                    >
+                        <a href="{{ url_for("main.home") }}">Home</a>
+                    </li>
+                    <li
+                        class="bubble active-{{ '2' if active == 'about' else '' }}"
+                    >
+                        <a href="{{ url_for("main.about") }}">About</a>
+                    </li>
+                    <li
+                        class="bubble active-{{ '3' if active == 'search' else '' }}"
+                    >
+                        <a href="{{ url_for("search.column_search") }}">Search</a>
+                    </li>
+                    <li
+                        class="bubble active-{{ '1' if active == 'db_structure' else '' }}"
+                    >
+                        <a href="{{ url_for("db_structure.db_structure_tree") }}">DB Structure</a>
+                    </li>
+                </ul>
+            </nav>
+        </header>
         {% block content %}{% endblock %}
     </body>
 </html>

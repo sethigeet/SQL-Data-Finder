@@ -39,6 +39,7 @@ def db_structure_tree():
 
     context = {
         "title": "Data Sructure",
+        "active": "db_structure",
         "db_structure": db_structure_data
     }
     return render_template('db_structure_tree.html', **context)

@@ -57,6 +57,7 @@ def column_search():
 
     context = {
         "title": "Data Sructure",
+        "active": "search",
         "form": form,
         "table_headers": results["column_names"],
         "table_data": results["column_data"],
