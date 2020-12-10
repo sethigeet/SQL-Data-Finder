@@ -1,12 +1,18 @@
 from flask import Flask
 from sqlalchemy import create_engine, MetaData
 
+import spacy
+
 import os
 
+# Database stuff
 SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
 engine = create_engine(SQLALCHEMY_DATABASE_URI)
 connection = engine.connect()
 metadata = MetaData()
+
+# Spacy stuff
+nlp = spacy.load('en_core_web_sm')
 
 
 def create_app(config_class):

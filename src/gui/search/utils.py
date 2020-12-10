@@ -106,7 +106,7 @@ def get_columns(table_structures: dict) -> list:
     return list(set(columns))
 
 
-def find_correct_column_name(search_term: str, columns: list) -> tuple:
+def find_correct_name(search_term: str, options: list, cutoff=0) -> tuple:
     """Finds the completed and correct column name from the given search term
 
     Parameters
@@ -114,8 +114,11 @@ def find_correct_column_name(search_term: str, columns: list) -> tuple:
     search_term:
         The term that has to be searched for.
 
-    columns:
-        A list of the available columns from which the search term has to be searched for
+    options:
+        A list of the available options from which the search term has to be searched for
+
+    cutoff:
+        An integer that represents the minimum score that is required for the search_term to pass
 
     Returns
     -------
@@ -124,7 +127,7 @@ def find_correct_column_name(search_term: str, columns: list) -> tuple:
 
     Example
     -------
-    >>> find_correct_column_name("customer", [
+    >>> find_correct_name("customer", [
             "first_name", "state", "unit_price", "quantity", "comments",
             "phone", "last_name", "city", "birth_date", "customer_id"
         ])
@@ -132,11 +135,11 @@ def find_correct_column_name(search_term: str, columns: list) -> tuple:
 
     """
 
-    column = process.extractOne(
-        search_term, columns, scorer=fuzz.token_set_ratio)
-    if column == None:
-        raise Exception(f"No column found (Search input given: {search_term})")
-    return column
+    option = process.extractOne(
+        search_term, options, scorer=fuzz.token_set_ratio, score_cutoff=cutoff)
+    if option == None:
+        raise Exception(f"No option found (Search input given: {search_term})")
+    return option
 
 
 def get_tables_from_column_name(column_name: str, table_structures: dict) -> list:
@@ -174,7 +177,7 @@ def get_tables_from_column_name(column_name: str, table_structures: dict) -> lis
     return list(set(tables))
 
 
-def get_joined_tables(common_column_name: str, req_tables: list, metadata, engine, connection, isouter=False, where={}) -> dict:
+def get_joined_tables(common_column_name: str, req_tables: list, metadata, engine, connection, table_structures: dict, isouter=False, where={}) -> dict:
     """Returns a dict containing a list of the selected column names and a list of all the results obtained by executing the query to join all the req_tables on the commun_column_name
 
     Parameters
@@ -193,6 +196,10 @@ def get_joined_tables(common_column_name: str, req_tables: list, metadata, engin
 
     connection:
         A connection to the database created using the SQLAlchemy library
+
+    table_structures:
+        A dictionary of table names as the keys and a list/tuple of column names
+        that are there in the table as the values.
 
     isouter:
         A boolean value stating whether the join is an inner or outer join
@@ -222,34 +229,41 @@ def get_joined_tables(common_column_name: str, req_tables: list, metadata, engin
     }
 
     """
-
+    new_req_tables = req_tables.copy()
     # Convert string table names to Table objects
-    for i, table_name in enumerate(req_tables):
-        req_tables[i] = Table(
+    for i, table_name in enumerate(new_req_tables):
+        new_req_tables[i] = Table(
             table_name, metadata, autoload=True, autoload_with=engine)
 
     # Join all the tables
     query = None
-    for table_index in range(len(req_tables) - 1):
+    for table_index in range(len(new_req_tables) - 1):
         if not query:
-            query = req_tables[table_index].join(
-                req_tables[table_index + 1],
-                req_tables[table_index].c[common_column_name] ==
-                req_tables[table_index + 1].c[common_column_name],
+            query = new_req_tables[table_index].join(
+                new_req_tables[table_index + 1],
+                new_req_tables[table_index].c[common_column_name] ==
+                new_req_tables[table_index + 1].c[common_column_name],
                 isouter=isouter
             )
         else:
             query = query.join(
-                req_tables[table_index + 1],
-                req_tables[table_index].c[common_column_name] ==
-                req_tables[table_index + 1].c[common_column_name],
+                new_req_tables[table_index + 1],
+                new_req_tables[table_index].c[common_column_name] ==
+                new_req_tables[table_index + 1].c[common_column_name],
                 isouter=isouter
             )
-    query = select(req_tables, from_obj=query)
+    query = select(new_req_tables, from_obj=query)
 
     if where:
+        index_of_table_containing_common_column = ""
+        for i, table in enumerate(req_tables):
+            for column in table_structures[table]:
+                if column == common_column_name:
+                    index_of_table_containing_common_column = i
+                    break
         query = query.where(
-            req_tables[0].c[where["column_name"]].like(f"%{where['value']}%")
+            new_req_tables[index_of_table_containing_common_column].c[where["column_name"]].like(
+                f"%{where['value']}%")
         )
 
     # Execute the query and fetch the results
@@ -308,14 +322,14 @@ def get_where_condition_from_string(where_term: str, possible_columns: list) -> 
     if contains_is:
         index_of_seperator = where_words.index("is")
         column_name = " ".join(where_words[:index_of_seperator])
-        column_name = find_correct_column_name(
+        column_name = find_correct_name(
             column_name, possible_columns
         )[0]
         value = " ".join(where_words[index_of_seperator + 1:])
         where = {"column_name": column_name, "value": value}
     elif contains_equals:
         column_name = where_words[0]
-        column_name = find_correct_column_name(
+        column_name = find_correct_name(
             column_name, possible_columns
         )[0]
         value = where_words[1]
@@ -324,3 +338,32 @@ def get_where_condition_from_string(where_term: str, possible_columns: list) -> 
         error = "Could not parse where condition!"
 
     return {"where_condition": where, "error": error}
+
+
+def get_common_column_name_from_tables(table_names: list, table_structures: dict) -> str:
+    for i in range(len(table_names)):
+        if len(table_names) - 1 != i:
+            for column_name_1 in table_structures[table_names[i]]:
+                for column_name_2 in table_structures[table_names[i + 1]]:
+                    if column_name_1 == column_name_2:
+                        return column_name_1
+
+
+def get_table_data(req_table: str, metadata, engine, connection, where={}):
+    req_table = Table(req_table, metadata, autoload=True, autoload_with=engine)
+
+    query = req_table.select()
+
+    if where:
+        query = query.where(
+            req_table.c[where["column_name"]].like(f"%{where['value']}%")
+        )
+
+    # Execute the query and fetch the results
+    result_proxy = connection.execute(query)
+    results = result_proxy.fetchall()
+
+    selected_columns = results[0].keys()
+
+    final_results = {"column_names": selected_columns, "column_data": results}
+    return final_results

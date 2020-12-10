@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template
 
-from gui import connection, metadata, engine
+from gui import connection, metadata, engine, nlp
 
-from .utils import find_correct_column_name, get_table_names, get_table_structures, get_tables_from_column_name, get_joined_tables, get_columns, get_where_condition_from_string
+from .utils import find_correct_name, get_common_column_name_from_tables, get_table_data, get_table_names, get_table_structures, get_tables_from_column_name, get_joined_tables, get_columns, get_where_condition_from_string
 from .forms import ColumnSearchForm
 
 search = Blueprint(name='search', import_name=__name__)
@@ -12,46 +12,60 @@ search = Blueprint(name='search', import_name=__name__)
 def column_search():
     tables = get_table_names(connection)
     table_structures = get_table_structures(tables, connection)
-    columns = get_columns(table_structures)
 
     results = {"column_names": [], "column_data": []}
     search_error = ""
-    inferred_column_name = ""
+    inferred_table_names = []
     where = {}
 
     form = ColumnSearchForm()
     if form.validate_on_submit():
         try:
-            inferred_column_name = find_correct_column_name(
-                form.search_term.data,
-                columns
-            )[0]
-            tables_containing_column = get_tables_from_column_name(
-                inferred_column_name,
-                table_structures
-            )
+            search_term = nlp(form.search_term.data)
+            for token in search_term:
+                print(token.text)
+                if token.pos_ != "PUNCT" and len(token.text.strip()) != 0:
+                    inferred_table_name = find_correct_name(
+                        token.text.strip(),
+                        tables,
+                        cutoff=50
+                    )[0]
+                    print(inferred_table_name)
+                    inferred_table_names.append(inferred_table_name)
 
-            possible_columns = []
-            for index in range(len(tables_containing_column)):
-                possible_columns += table_structures[tables_containing_column[index]]
+            if len(inferred_table_names) > 0:
+                if form.where_term.data:
+                    possible_column_names = []
+                    for table_name in inferred_table_names:
+                        for col_name in table_structures[table_name]:
+                            possible_column_names.append(col_name)
+                    where_condition = get_where_condition_from_string(
+                        form.where_term.data, possible_column_names)
+                    where = where_condition["where_condition"]
+                    search_error = where_condition["error"]
 
-            if form.where_term.data:
-                where_condition = get_where_condition_from_string(
-                    form.where_term.data, possible_columns)
-                where = where_condition["where_condition"]
-                search_error = where_condition["error"]
-                # print(where)
-
-            results = get_joined_tables(
-                inferred_column_name,
-                tables_containing_column,
-                metadata,
-                engine,
-                connection,
-                where=where
-            )
-            if len(results["column_data"]) == 0:
-                search_error = "Your search query did not return any results"
+                if len(inferred_table_names) == 1:
+                    results = get_table_data(
+                        inferred_table_names[0], metadata, engine, connection)
+                else:
+                    common_column_name = get_common_column_name_from_tables(
+                        inferred_table_names, table_structures)
+                    if common_column_name:
+                        results = get_joined_tables(
+                            common_column_name,
+                            inferred_table_names,
+                            metadata,
+                            engine,
+                            connection,
+                            table_structures,
+                            where=where
+                        )
+                        if len(results["column_data"]) == 0:
+                            search_error = "Your search query did not return any results"
+                    else:
+                        search_error = "The requested tables do not have any common columns"
+            else:
+                search_error = "Unable to parse any table names from search query"
         except Exception as e:
             search_error = e
 
@@ -61,7 +75,7 @@ def column_search():
         "form": form,
         "table_headers": results["column_names"],
         "table_data": results["column_data"],
-        "inferred_column_name": inferred_column_name,
+        "inferred_table_names": inferred_table_names,
         "search_error": search_error
     }
     return render_template('column_search.html', **context)
