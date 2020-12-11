@@ -14,6 +14,8 @@ def column_search():
     table_structures = get_table_structures(tables, connection)
 
     results = {"column_names": [], "column_data": []}
+    search_term = ""
+    where_term = ""
     search_error = ""
     inferred_table_names = []
     where = {}
@@ -21,26 +23,30 @@ def column_search():
     form = ColumnSearchForm()
     if form.validate_on_submit():
         try:
-            search_term = nlp(form.search_term.data)
+            if form.search_term.data.count("where") > 0:
+                search_term = form.search_term.data.split(" where ")[0]
+                where_term = form.search_term.data.split(" where ")[1]
+            else:
+                search_term = form.search_term.data
+
+            search_term = nlp(search_term)
             for token in search_term:
-                print(token.text)
                 if token.pos_ != "PUNCT" and len(token.text.strip()) != 0:
                     inferred_table_name = find_correct_name(
                         token.text.strip(),
                         tables,
                         cutoff=50
                     )[0]
-                    print(inferred_table_name)
                     inferred_table_names.append(inferred_table_name)
 
             if len(inferred_table_names) > 0:
-                if form.where_term.data:
+                if where_term:
                     possible_column_names = []
                     for table_name in inferred_table_names:
                         for col_name in table_structures[table_name]:
                             possible_column_names.append(col_name)
                     where_condition = get_where_condition_from_string(
-                        form.where_term.data, possible_column_names)
+                        where_term, possible_column_names)
                     where = where_condition["where_condition"]
                     search_error = where_condition["error"]
 

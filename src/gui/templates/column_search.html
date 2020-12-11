@@ -14,17 +14,7 @@
 
             {% else %} {{ form.search_term() }} {% endif %}
         </div>
-        <div class="form-group">
-            {{ form.where_term.label() }} {% if form.where_term.errors %} {{
-            form.where_term() }}
-            <div>
-                {% for error in form.where_term.errors %}
-                <span>{{ error }}</span>
-                {% endfor %}
-            </div>
 
-            {% else %} {{ form.where_term() }} {% endif %}
-        </div>
         <div>{{ form.submit() }}</div>
     </form>
     {% if table_headers|length > 0 and table_data|length > 0 %}
