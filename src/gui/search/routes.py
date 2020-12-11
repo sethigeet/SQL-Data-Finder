@@ -7,6 +7,8 @@ from .forms import ColumnSearchForm
 
 search = Blueprint(name='search', import_name=__name__)
 
+UNUSEFUL_TAGS = ("PUNCT", "AUX", "ADP", "PRON", "DET", "CONJ")
+
 
 @search.route('/search', methods=["GET", "POST"])
 def column_search():
@@ -23,7 +25,7 @@ def column_search():
     form = ColumnSearchForm()
     if form.validate_on_submit():
         try:
-            if form.search_term.data.count("where") > 0:
+            if form.search_term.data.count(" where ") > 0:
                 search_term = form.search_term.data.split(" where ")[0]
                 where_term = form.search_term.data.split(" where ")[1]
             else:
@@ -31,7 +33,7 @@ def column_search():
 
             search_term = nlp(search_term)
             for token in search_term:
-                if token.pos_ != "PUNCT" and len(token.text.strip()) != 0:
+                if token.pos_ not in UNUSEFUL_TAGS and len(token.text.strip()) != 0:
                     inferred_table_name = find_correct_name(
                         token.text.strip(),
                         tables,

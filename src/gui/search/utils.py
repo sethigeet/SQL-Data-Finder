@@ -19,7 +19,7 @@ def get_table_names(connection):
     Example
     -------
     >>> get_table_names(connection)
-    ["customers", "order_items"]
+    ["customers", "order_items", ...]
 
     """
 
@@ -50,8 +50,8 @@ def get_table_structures(tables: list, connection) -> dict:
     -------
     >>> get_table_structures(["customers", "order_items"], connection)
     {
-        "customers": ["customer_id", "first_name", "last_name"], 
-        "order_items": ["order_id", "product_id", "quantity", "unit_price"]
+        "customers": ["customer_id", "first_name", "last_name", ...], 
+        "order_items": ["order_id", "product_id", "quantity", ...]
     }
 
     """
@@ -87,12 +87,13 @@ def get_columns(table_structures: dict) -> list:
     Example
     -------
     >>> get_columns({
-            "customers": ["customer_id", "first_name", "last_name"], 
-            "order_items": ["order_id", "product_id", "quantity", "unit_price"]
+            "customers": ["customer_id", "first_name", "last_name", ...], 
+            "order_items": ["order_id", "product_id", "quantity", ...],
+            ...
         })
     [
         "customer_id", "first_name", "last_name", "order_id",
-        "product_id", "quantity", "unit_price"
+        "product_id", "quantity", ...
     ]
 
     """
@@ -127,10 +128,7 @@ def find_correct_name(search_term: str, options: list, cutoff=0) -> tuple:
 
     Example
     -------
-    >>> find_correct_name("customer", [
-            "first_name", "state", "unit_price", "quantity", "comments",
-            "phone", "last_name", "city", "birth_date", "customer_id"
-        ])
+    >>> find_correct_name("customer", ["first_name", "state", "unit_price", "customer_id", ...])
     ("customer_id", 84)
 
     """
@@ -162,8 +160,9 @@ def get_tables_from_column_name(column_name: str, table_structures: dict) -> lis
     Example
     -------
     >>> get_tables_from_column("customer_id", {
-            "customers": ["customer_id", "first_name", "last_name"], 
-            "order_items": ["customer_id", "order_id", "product_id", "quantity", "unit_price"]
+            "customers": ["customer_id", "first_name", "last_name", ...], 
+            "order_items": ["customer_id", "order_id", "product_id", ...],
+            ...
         })
     ["customers"]
 
@@ -223,12 +222,14 @@ def get_joined_tables(common_column_name: str, req_tables: list, metadata, engin
             ...
         ]
         "column_data": [
-            (9, 10, datetime.date(2017, 7, 5), 2, 'Levy', 'Mynett', datetime.date(1969, 10, 13), '404-246-3370')
-            (10, 6, datetime.date(2018, 4, 22), 2, 'Elka', 'Twiddell', datetime.date(1991, 9, 4), '312-480-8498')
+            (9, 10, datetime.date(2017, 7, 5), ...)
+            (10, 6, datetime.date(2018, 4, 22), ...),
+            ...
         ]
     }
 
     """
+
     new_req_tables = req_tables.copy()
     # Convert string table names to Table objects
     for i, table_name in enumerate(new_req_tables):
@@ -341,6 +342,33 @@ def get_where_condition_from_string(where_term: str, possible_columns: list) -> 
 
 
 def get_common_column_name_from_tables(table_names: list, table_structures: dict) -> str:
+    """Finds the column name which is present in all the tables that have been provided by looking at the table_structures
+
+    Parameters
+    ----------
+    table_names:
+        The table names that have to be searched for
+
+    table_structures:
+        A dictionary of table names as the keys and a list/tuple of column names
+        that are there in the table as the values.
+
+    Returns
+    -------
+    str:
+        A string containing the column name
+
+    Example
+    -------
+    >>> get_common_column_name_from_tables(["customers", "order_items"], {
+            "customers": ["customer_id", "first_name", "last_name", ...], 
+            "order_items": ["customer_id", "order_id", "product_id", ...],
+            ...
+        })
+    "customer_id"
+
+    """
+
     for i in range(len(table_names)):
         if len(table_names) - 1 != i:
             for column_name_1 in table_structures[table_names[i]]:
@@ -350,6 +378,49 @@ def get_common_column_name_from_tables(table_names: list, table_structures: dict
 
 
 def get_table_data(req_table: str, metadata, engine, connection, where={}):
+    """Returns a dict containing a list of the selected column names and a list of all the results obtained by executing the query to select all the columns from the req_table
+
+    Parameters
+    ----------
+    req_table:
+        A string of the required table name
+
+    metadata:
+        A metadata to store the tables of the database in memory created using the SQLAlchemy library
+
+    engine:
+        An engine containing a connection to the database created using the SQLAlchemy library
+
+    connection:
+        A connection to the database created using the SQLAlchemy library
+
+    where:
+        A dictionary which contains "column_name": Name of the column and "value": Value of the column 
+
+    Returns
+    -------
+    dict:
+        A dict of all the column names and results obtained
+
+    Example
+    -------
+    >>> get_table_data("customers", metadata, engine, connection)
+    {
+        "column_names: [
+            "customer_id",
+            "first_name",
+            "last_name",
+            ...
+        ]
+        "column_data": [
+            (9, 'Levy', 'Mynett', ...)
+            (10, 'Elka', 'Twiddell', ...),
+            ...
+        ]
+    }
+
+    """
+
     req_table = Table(req_table, metadata, autoload=True, autoload_with=engine)
 
     query = req_table.select()
