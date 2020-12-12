@@ -1,34 +1,42 @@
 {% extends "layout.html" %} {% block content %}
-<div>
-    <h1>Column Search Page!</h1>
+<link
+    rel="stylesheet"
+    type="text/css"
+    href="{{ url_for('static', filename='css/search.css') }}"
+/>
+<div class="container">
+    <h1 class="title">Column Search Page!</h1>
     <form action="" method="post">
         {{ form.hidden_tag() }}
-        <div class="form-group">
-            {{ form.search_term.label() }} {% if form.search_term.errors %} {{
-            form.search_term() }}
+        <div class="form">
+            {{ form.search_term.label(style="margin-right: 1em;") }} {% if
+            form.search_term.errors %} {{ form.search_term() }}
             <div>
                 {% for error in form.search_term.errors %}
                 <span>{{ error }}</span>
                 {% endfor %}
             </div>
 
-            {% else %} {{ form.search_term() }} {% endif %}
+            {% else %}
+            <div class="autocomplete" style="width: 500px">
+                {{ form.search_term(id="search_input") }}
+            </div>
+            {% endif %}
+            <div style="margin-left: 1em">{{ form.submit() }}</div>
         </div>
-
-        <div>{{ form.submit() }}</div>
     </form>
     {% if table_headers|length > 0 and table_data|length > 0 %}
     <div>
         <span>inferred_table_names: {{ inferred_table_names }}</span>
     </div>
     <div style="margin-top: 30px">
-        <div>
-            <table>
-                <tr>
+        <div class="table-wrapper">
+            <table class="fl-table">
+                <thead>
                     {% for header_cell in table_headers %}
                     <th>{{ header_cell }}</th>
                     {% endfor %}
-                </tr>
+                </thead>
                 {% for row_data in table_data %}
                 <tr>
                     {% for cell in row_data %}
@@ -43,5 +51,10 @@
     {% elif search_error %} search_error: {{ search_error }} {% else %}
     <span>Start searching...</span>
     {% endif %}
+
+    <script src="{{ url_for('static', filename='search.js') }}"></script>
+    <script>
+        autocomplete(document.getElementById("search_input"), {{ table_names|safe }})
+    </script>
 </div>
 {% endblock content %}
