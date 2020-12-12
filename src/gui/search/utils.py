@@ -256,12 +256,16 @@ def get_joined_tables(common_column_name: str, req_tables: list, metadata, engin
     query = select(new_req_tables, from_obj=query)
 
     if where:
-        index_of_table_containing_common_column = ""
-        for i, table in enumerate(req_tables):
+        index_of_table_containing_common_column = None
+        run = True
+        i = 0
+        while run:
+            table = req_tables[i]
             for column in table_structures[table]:
                 if column == common_column_name:
                     index_of_table_containing_common_column = i
-                    break
+                    run = False
+            i += 1
         query = query.where(
             new_req_tables[index_of_table_containing_common_column].c[where["column_name"]].like(
                 f"%{where['value']}%")
