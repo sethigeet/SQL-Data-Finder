@@ -83,7 +83,7 @@ def column_search():
         "form": form,
         "table_headers": results["column_names"],
         "table_data": results["column_data"],
-        "table_names": tables,
+        "table_structures": table_structures,
         "inferred_table_names": inferred_table_names,
         "search_error": search_error
     }

@@ -54,7 +54,7 @@
 
     <script src="{{ url_for('static', filename='search.js') }}"></script>
     <script>
-        autocomplete(document.getElementById("search_input"), {{ table_names|safe }})
+        autocomplete(document.getElementById("search_input"), {{ table_structures|safe }})
     </script>
 </div>
 {% endblock content %}

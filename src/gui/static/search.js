@@ -1,7 +1,12 @@
-function autocomplete(inp, arr) {
+function autocomplete(inp, table_structures) {
+    var tables = [];
+    for (let table in table_structures) {
+        tables.push(table);
+    }
+
     var currentFocus;
-    var original_arr = [...arr];
-    var new_arr = [];
+    var recommendations = [...tables];
+    var val_tables = [];
 
     inp.addEventListener("input", function () {
         var a,
@@ -26,28 +31,76 @@ function autocomplete(inp, arr) {
             val.indexOf(" ") === -1 &&
             val.indexOf(",") === -1
         ) {
-            original_arr = [...arr];
+            recommendations = [...tables];
         } else if (
             val.substr(val.length - 2, val.length - 1) === ", " ||
             val[val.length - 1] === " " ||
             val[val.length - 1] === ","
         ) {
-            original_arr = original_arr.map((_, i) => val + arr[i]);
-        } else {
-            original_arr = [...new_arr];
-        }
-        new_arr = [...original_arr];
-        for (i = 0; i < original_arr.length; i++) {
             if (
-                new_arr[i].substr(0, val.length).toLowerCase() ==
+                val
+                    .split(" ")
+                    .filter((val) => !(val in [",", " ", "."]))
+                    .indexOf("where") !== -1
+            ) {
+                recommendations = [];
+                val_tables = val
+                    .split(" where ")[0]
+                    .split(" ")
+                    .filter((val) => !(val in [",", " ", "."]));
+                for (let i in val_tables) {
+                    columns = table_structures[val_tables[i]];
+                    for (let column_i in columns) {
+                        column = columns[column_i];
+                        if (
+                            val
+                                .split(" where ")[1]
+                                .split(" ")
+                                .filter((val) => !(val in [",", " ", "."]))
+                                .indexOf(column) === -1
+                        ) {
+                            recommendations[recommendations.length] =
+                                val + column;
+                        }
+                    }
+                }
+            } else {
+                for (let i = 0; i < tables.length; i++) {
+                    if (
+                        val
+                            .split(" ")
+                            .filter((val) => !(val in [",", " ", "."]))
+                            .indexOf(tables[i]) === -1
+                    ) {
+                        recommendations[recommendations.length] =
+                            val + tables[i];
+                    }
+                }
+            }
+
+            if (
+                val
+                    .split(" ")
+                    .filter((val) => !(val in [",", " ", "."]))
+                    .indexOf("where") === -1
+            ) {
+                recommendations[recommendations.length] = val + "where";
+            }
+        }
+
+        for (i = 0; i < recommendations.length; i++) {
+            if (
+                recommendations[i].substr(0, val.length).toLowerCase() ==
                 val.toLowerCase()
             ) {
                 b = document.createElement("DIV");
                 b.innerHTML =
-                    "<strong>" + new_arr[i].substr(0, val.length) + "</strong>";
-                b.innerHTML += new_arr[i].substr(val.length);
+                    "<strong>" +
+                    recommendations[i].substr(0, val.length) +
+                    "</strong>";
+                b.innerHTML += recommendations[i].substr(val.length);
                 b.innerHTML +=
-                    "<input type='hidden' value='" + new_arr[i] + "'>";
+                    "<input type='hidden' value='" + recommendations[i] + "'>";
                 b.addEventListener("click", function () {
                     inp.value = this.getElementsByTagName("input")[0].value;
                     closeAllLists();
