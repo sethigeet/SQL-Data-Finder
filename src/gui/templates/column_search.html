@@ -52,7 +52,7 @@
     <span>Start searching...</span>
     {% endif %}
 
-    <script src="{{ url_for('static', filename='search.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/search.js') }}"></script>
     <script>
         autocomplete(document.getElementById("search_input"), {{ table_structures|safe }})
     </script>

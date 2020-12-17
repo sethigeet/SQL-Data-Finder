@@ -6,7 +6,7 @@
 />
 <div>
     <div id="center-container">
-        <div id="infovis"></div>
+        <div id="db_structure_canvas"></div>
     </div>
 
     <div id="right-container">
@@ -102,11 +102,11 @@
     <div id="log"></div>
     <script
         type="text/javascript"
-        src="{{ url_for('static', filename='jit-yc.js') }}"
+        src="{{ url_for('static', filename='js/jit-yc.js') }}"
     ></script>
     <script
         type="text/javascript"
-        src="{{ url_for('static', filename='test.js') }}"
+        src="{{ url_for('static', filename='js/db_structure.js') }}"
     ></script>
     <script type="text/javascript">
         window.addEventListener("DOMContentLoaded", function () {
